@@ -1,0 +1,17 @@
+{
+  "name": "township-github",
+  "version": "1.0.0",
+  "description": "github provider for township",
+  "license": "MIT",
+  "author": "Irina Shestak",
+  "repository": "lrlna/township-github",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard"
+  },
+  "keywords": [
+    "township",
+    "oauth",
+    "github"
+  ]
+}
