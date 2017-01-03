@@ -13,5 +13,10 @@
     "township",
     "oauth",
     "github"
-  ]
+  ],
+  "devDependencies": {
+    "level": "^1.5.0",
+    "merry": "^3.0.2",
+    "township-auth": "^2.0.5"
+  }
 }
