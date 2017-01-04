@@ -33,6 +33,8 @@ function redirect () {
   var url = '/redirect'
   xhr(url, function (err, res, body) {
     if (err) return console.log(err)
-    console.log('done with login')
+
+    var location = res.headers['x-github-oauth-redirect']
+    window.location = location
   })
 }

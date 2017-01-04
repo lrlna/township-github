@@ -10,7 +10,6 @@ var Github = require('../')
 
 var env = merry.env({
   'DATABASE_PATH': '/tmp/users.db',
-  'GITHUB_RETURN_URL': 'localhost:8080/done.html',
   'GITHUB_SECRET': String,
   'GITHUB_NAME': String,
   'GITHUB_ID': String,
@@ -32,14 +31,13 @@ app.router([
   [ '/bundle.js', _merryAssets(assets.js.bind(assets)) ],
   [ '/404', merry.notFound() ],
   [ '/redirect', redirect ],
-  [ '/register', register ],
-  [ '/login', login ]
+  [ '/register', register ]
 ])
 app.listen(env.PORT)
 
 function redirect (req, res, ctx, next) {
-  var body = github.redirect(req, res)
-  next(null, body)
+  github.redirect(req, res)
+  next(null, '')
 }
 
 function register (req, res, ctx, done) {
@@ -49,16 +47,6 @@ function register (req, res, ctx, done) {
       github: { code: json.code }
     }
     auth.create(opts, done)
-  })
-}
-
-function login (req, res, ctx, done) {
-  _parseJson(req, function (err, json) {
-    if (err) return done(err)
-    var opts = {
-      github: { code: json.code }
-    }
-    auth.verify(opts, done)
   })
 }
 

@@ -63,6 +63,22 @@ function login (req, res, ctx, done) {
 }
 ```
 
+To start the oAuth flow, start with this function on the client:
+
+```js
+var xhr = require('xhr')
+
+function redirect () {
+  var url = '/redirect'
+  xhr(url, function (err, res, body) {
+    if (err) return console.log(err)
+
+    var location = res.headers['x-github-oauth-redirect']
+    window.location = location
+  })
+}
+```
+
 ## API
 ### github = Github(opts)
 Create a new instance of `township-github`. Takes the following arguments:
