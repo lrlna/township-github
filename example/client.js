@@ -10,8 +10,16 @@ app.router([
 document.body.appendChild(app.start())
 
 function mainView () {
+  var buttonClass = 'f6 f5-ns fw6 dib ba b--black-20 bg-blue white ph3 ph4-ns pv2 pv3-ns br2 grow no-underline pointer'
   return html`
-    <p>hi</p>
+    <body class="">
+      <main class="mw6 center">
+        <h1>Login</h1>
+        <button onclick=${redirect} class=${buttonClass}>
+          Continue with GitHub
+        </button>
+      </main>
+    </body>
   `
 }
 
@@ -19,4 +27,12 @@ function doneView () {
   return html`
     <p>doneee</p>
   `
+}
+
+function redirect () {
+  var url = '/redirect'
+  xhr(url, function (err, res, body) {
+    if (err) return console.log(err)
+    console.log('done with login')
+  })
 }

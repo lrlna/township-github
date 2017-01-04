@@ -31,7 +31,7 @@ function Github (opts) {
     pathname: '/login',
     query: {
       client_id: this.id,
-      return_to: this.returnUrl + '?client_id=' + this.id
+      return_to: '/login/oauth/authorize?client_id=' + this.id
     }
   })
 

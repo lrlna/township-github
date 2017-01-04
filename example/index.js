@@ -1,3 +1,5 @@
+var explain = require('explain-error')
+var concat = require('concat-stream')
 var Auth = require('township-auth')
 var bankai = require('bankai')
 var merry = require('merry')
@@ -8,7 +10,7 @@ var Github = require('../')
 
 var env = merry.env({
   'DATABASE_PATH': '/tmp/users.db',
-  'GITHUB_RETURN_URL': String,
+  'GITHUB_RETURN_URL': 'localhost:8080/done.html',
   'GITHUB_SECRET': String,
   'GITHUB_NAME': String,
   'GITHUB_ID': String,
@@ -41,7 +43,7 @@ function redirect (req, res, ctx, next) {
 }
 
 function register (req, res, ctx, done) {
-  merry.parse.json(req, function (err, json) {
+  _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
       github: { code: json.code }
@@ -51,10 +53,10 @@ function register (req, res, ctx, done) {
 }
 
 function login (req, res, ctx, done) {
-  merry.parse.json(req, function (err, json) {
+  _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
-      github: { code: ctx.code }
+      github: { code: json.code }
     }
     auth.verify(opts, done)
   })
@@ -65,3 +67,16 @@ function _merryAssets (asset) {
     done(null, asset(req, res))
   }
 }
+
+function _parseJson (req, cb) {
+  req.pipe(concat(function (buf) {
+    console.log(buf.toString())
+    try {
+      var json = JSON.parse(buf)
+    } catch (err) {
+      return cb(explain(err, 'error parsing JSON'))
+    }
+    cb(null, json)
+  }))
+}
+
