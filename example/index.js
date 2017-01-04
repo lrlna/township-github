@@ -22,7 +22,7 @@ var github = Github(env)
 var app = merry()
 
 var auth = Auth(db, {
-  providers: { github: github.provider }
+  providers: { github: github.provider() }
 })
 
 app.router([
@@ -31,7 +31,10 @@ app.router([
   [ '/bundle.js', _merryAssets(assets.js.bind(assets)) ],
   [ '/404', merry.notFound() ],
   [ '/redirect', redirect ],
-  [ '/register', register ]
+  [ '/register', {
+    'post': register
+  } ],
+  [ '/login', login ]
 ])
 app.listen(env.PORT)
 
@@ -50,6 +53,16 @@ function register (req, res, ctx, done) {
   })
 }
 
+function login (req, res, ctx, done) {
+  _parseJson(req, function (err, json) {
+    if (err) return done(err)
+    var opts = {
+      github: { code: json.code }
+    }
+    auth.verify(opts, done)
+  })
+}
+
 function _merryAssets (asset) {
   return function (req, res, ctx, done) {
     done(null, asset(req, res))
@@ -58,7 +71,6 @@ function _merryAssets (asset) {
 
 function _parseJson (req, cb) {
   req.pipe(concat(function (buf) {
-    console.log(buf.toString())
     try {
       var json = JSON.parse(buf)
     } catch (err) {

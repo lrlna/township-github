@@ -21,7 +21,7 @@
     "level": "^1.5.0",
     "merry": "^3.0.2",
     "nodemon": "^1.11.0",
-    "township-auth": "^2.0.5",
+    "township-auth": "^3.0.0",
     "xhr": "^2.3.2"
   },
   "dependencies": {

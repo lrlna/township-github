@@ -24,8 +24,26 @@ function mainView () {
 }
 
 function doneView () {
+  var code = window.location.href.match(/\?code=(.*)/)[1]
+  var body = {
+    code: code
+  }
+  var opts = {
+    uri: '/register',
+    body: body,
+    json: true,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+
+  xhr(opts, function (err, res, body) {
+    if (err) return console.log(err)
+  })
+
   return html`
-    <p>doneee</p>
+    <a href="/">done</a>
   `
 }
 
