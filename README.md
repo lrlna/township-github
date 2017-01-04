@@ -72,9 +72,9 @@ Create a new instance of `township-github`. Takes the following arguments:
   were issued
 - __opts.returnUrl:__ (required)
 
-Alternatively `GITHUB_ID`, `GITHUB_SECRET`, `GITHUB_NAME` and `RETURN_URL` can
-be used too, which is useful when passing variables directly from
-`process.env`.
+Alternatively `GITHUB_ID`, `GITHUB_SECRET`, `GITHUB_NAME` and
+`GITHUB_RETURN_URL` can be used too, which is useful when passing variables
+directly from `process.env`.
 
 ### html = github.redirect(req, res)
 Set `302` redirect headers to the GitHub oauth page and return a snippet of

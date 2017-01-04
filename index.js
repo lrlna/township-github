@@ -15,7 +15,7 @@ function Github (opts) {
 
   assert.equal(typeof opts, 'object', 'township-github: opts should be type Object')
 
-  this.returnUrl = opts.RETURN_URL || opts.returnUrl
+  this.returnUrl = opts.GITHUB_RETURN_URL || opts.returnUrl
   this.secret = opts.GITHUB_SECRET || opts.secret
   this.name = opts.GITHUB_NAME || opts.name
   this.id = opts.GITHUB_ID || opts.id
