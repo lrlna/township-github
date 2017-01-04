@@ -19,5 +19,12 @@
     "level": "^1.5.0",
     "merry": "^3.0.2",
     "township-auth": "^2.0.5"
+  },
+  "dependencies": {
+    "concat-stream": "^1.6.0",
+    "explain-error": "^1.0.3",
+    "pump": "^1.0.2",
+    "request": "^2.79.0",
+    "xtend": "^4.0.1"
   }
 }

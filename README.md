@@ -15,6 +15,7 @@ var db = level('users')
 var app = merry()
 
 var github = Github({
+  returnUrl: '<some-browser-url-we-control>',
   secret: '<our-secret>',
   name: 'our-app',
   id: '<our-id>'
@@ -25,32 +26,40 @@ var auth = Auth(db, {
 })
 
 app.router([
+  [ '/redirect', redirect ],
   [ '/register', register ],
-  [ '/login', login ],
-  [ '/redirect', redirect ]
+  [ '/login', login ]
 ])
-
-function register (req, res, ctx, done) {
-  auth.create({
-    github: { code: ctx.code }
-  }, function (err, account) {
-    if (err) return console.error(err)
-    console.log(account)
-  })
-}
-
-function login (req, res, ctx, done) {
-  auth.verify({
-    github: { code: ctx.code }
-  }, function (err, account) {
-    if (err) return console.error(err)
-    console.log(account)
-  })
-}
 
 function redirect (req, res, ctx, next) {
   var html = github.redirect(req, res)
   next(null, html)
+}
+
+function register (req, res, ctx, done) {
+  merry.parse.json(req, function (err, json) {
+    if (err) return done(err)
+    var opts = {
+      github: { code: json.code }
+    }
+    auth.create(opts, function (err, account) {
+      if (err) return done(err)
+      done(null, account)
+    })
+  })
+}
+
+function login (req, res, ctx, done) {
+  merry.parse.json(req, function (err, json) {
+    if (err) return done(err)
+    var opts = {
+      github: { code: ctx.code }
+    }
+    auth.verify(opts, function (err, account) {
+      if (err) return done(err)
+      done(null, account)
+    })
+  })
 }
 ```
 
@@ -61,9 +70,11 @@ Create a new instance of `township-github`. Takes the following arguments:
 - __opts.secret:__ (required) the GitHub client secret
 - __opts.name:__ (required) the GitHub application name for which id and secret
   were issued
+- __opts.returnUrl:__ (required)
 
-Alternatively `GITHUB_ID`, `GITHUB_SECRET` and `GITHUB_NAME` can be used too,
-which is useful when passing variables directly from `process.env`.
+Alternatively `GITHUB_ID`, `GITHUB_SECRET`, `GITHUB_NAME` and `RETURN_URL` can
+be used too, which is useful when passing variables directly from
+`process.env`.
 
 ### html = github.redirect(req, res)
 Set `302` redirect headers to the GitHub oauth page and return a snippet of
