@@ -22,7 +22,7 @@ var github = Github(env)
 var app = merry()
 
 var auth = Auth(db, {
-  providers: { github: github.provider() }
+  providers: { github: github.provider }
 })
 
 app.router([

@@ -47,6 +47,18 @@ function Github (opts) {
   }
 }
 
+Github.prototype.provider = function (auth, options) {
+  return {
+    key: 'github.username',
+    create: function () {
+      return this._create
+    },
+    verify: function () {
+      return this._verify
+    }
+  }
+}
+
 Github.prototype.redirect = function (req, res) {
   assert.equal(typeof req, 'object', 'township-github.redirect: req should be type Object')
   assert.equal(typeof res, 'object', 'township-github.redirect: res should be type Object')
@@ -55,24 +67,20 @@ Github.prototype.redirect = function (req, res) {
   res.setHeader('x-github-oauth-redirect', this.redirectUrl)
 }
 
-Github.prototype.provider = function (auth, options) {
-  return {
-    key: 'github.username',
-    create: this._create,
-    verify: this._verify
-  }
-}
-
 Github.prototype._create = function (key, opts, cb) {
   var code = opts.code
+  console.log('creating')
   this._oauth(code, function (user) {
     console.log(user)
+    return user
   })
 }
 
 Github.prototype._verify = function (opts, cb) {
   var code = opts.code
   this._oauth(code, function (user) {
+    console.log(user)
+    return user
   })
 }
 
