@@ -6,7 +6,10 @@ GitHub provider for [township][township].
 
 ## Usage
 ```js
+// index.js, your server file
+
 var Github = require('township-github')
+var explain = require('explain-error')
 var Auth = require('township-auth')
 var merry = require('merry')
 var level = require('level')
@@ -27,8 +30,13 @@ var auth = Auth(db, {
 
 app.router([
   [ '/redirect', redirect ],
-  [ '/register', register ],
-  [ '/login', login ]
+  [ '/register', {
+    // your client.js file will be posting to this route 
+    'post': register 
+  } ],
+  [ '/login', {
+    'post': login
+  } ]
 ])
 
 function redirect (req, res, ctx, next) {
@@ -37,33 +45,38 @@ function redirect (req, res, ctx, next) {
 }
 
 function register (req, res, ctx, done) {
-  merry.parse.json(req, function (err, json) {
+  _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
       github: { code: json.code }
     }
-    auth.create(opts, function (err, account) {
-      if (err) return done(err)
-      done(null, account)
-    })
+    auth.create(opts, done)
   })
 }
 
 function login (req, res, ctx, done) {
-  merry.parse.json(req, function (err, json) {
+  _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
-      github: { code: ctx.code }
+      github: { code: json.code }
     }
-    auth.verify(opts, function (err, account) {
-      if (err) return done(err)
-      done(null, account)
-    })
+    auth.verify('github', opts, done)
   })
+}
+
+function _parseJson (req, cb) {
+  req.pipe(concat(function (buf) {
+    try {
+      var json = JSON.parse(buf)
+    } catch (err) {
+      return cb(explain(err, 'error parsing JSON'))
+    }
+    cb(null, json)
+  }))
 }
 ```
 
-To start the oAuth flow, start with this function on the client:
+You will need a client to handle requests to the server's redirect and register/login routes. The following functions should get you started:
 
 ```js
 var xhr = require('xhr')
@@ -77,6 +90,29 @@ function redirect () {
     window.location = location
   })
 }
+
+function register() {
+  // need to grab the code provided by GitHub
+  var code = window.location.href.match(/\?code=(.*)/)[1]
+  var body = {
+    code: code
+  }
+  var opts = {
+    // or /login to verify user info
+    uri: '/register',
+    body: body,
+    json: true,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+
+  xhr(opts, function (err, res, body) {
+    if (err) return console.log(err)
+  })
+}
+
 ```
 
 ## API
