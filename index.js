@@ -64,14 +64,21 @@ function Github (opts) {
   ctx._create = function (key, opts, cb) {
     var code = opts.code
     ctx._oauth(code, function (user) {
-      cb(user)
+      var res = {
+        username: user.login
+      }
+
+      cb(null, res)
     })
   }
 
   ctx._verify = function (opts, cb) {
     var code = opts.code
     ctx._oauth(code, function (user) {
-      cb(user)
+      auth.db.get(opts.key, function (err, account) {
+        if (err) return cb(err)
+        cb(null, { key: account.key, github: { username: account.github.username } })
+      })
     })
   }
 
@@ -112,7 +119,8 @@ function Github (opts) {
       if (err) return cb(explain(err, 'township-github._getUser: pipe error'))
     })
 
-    function handler (user) {
+    function handler (obj) {
+      var user = JSON.parse(obj)
       cb(user)
     }
   }

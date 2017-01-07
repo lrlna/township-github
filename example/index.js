@@ -34,7 +34,9 @@ app.router([
   [ '/register', {
     'post': register
   } ],
-  [ '/login', login ]
+  [ '/login', {
+    'post': login
+  } ]
 ])
 app.listen(env.PORT)
 
@@ -59,7 +61,7 @@ function login (req, res, ctx, done) {
     var opts = {
       github: { code: json.code }
     }
-    auth.verify(opts, done)
+    auth.verify('github', opts, done)
   })
 }
 
@@ -79,4 +81,3 @@ function _parseJson (req, cb) {
     cb(null, json)
   }))
 }
-

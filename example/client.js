@@ -29,7 +29,7 @@ function doneView () {
     code: code
   }
   var opts = {
-    uri: '/register',
+    uri: '/login',
     body: body,
     json: true,
     method: 'POST',
