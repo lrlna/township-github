@@ -10,122 +10,114 @@ var url = require('url')
 module.exports = Github
 
 function Github (opts) {
-  if (!(this instanceof Github)) return new Github(opts)
+  var ctx = {}
   opts = opts || {}
 
   assert.equal(typeof opts, 'object', 'township-github: opts should be type Object')
 
-  this.secret = opts.GITHUB_SECRET || opts.secret
-  this.name = opts.GITHUB_NAME || opts.name
-  this.id = opts.GITHUB_ID || opts.id
+  ctx.secret = opts.GITHUB_SECRET || opts.secret
+  ctx.name = opts.GITHUB_NAME || opts.name
+  ctx.id = opts.GITHUB_ID || opts.id
 
-  assert.equal(typeof this.secret, 'string', 'township-github: secret should be type String')
-  assert.equal(typeof this.name, 'string', 'township-github: name should be type String')
-  assert.equal(typeof this.id, 'string', 'township-github: id should be type String')
+  assert.equal(typeof ctx.secret, 'string', 'township-github: secret should be type String')
+  assert.equal(typeof ctx.name, 'string', 'township-github: name should be type String')
+  assert.equal(typeof ctx.id, 'string', 'township-github: id should be type String')
 
-  this.redirectUrl = url.format({
+  ctx.redirectUrl = url.format({
     protocol: 'https:',
     host: 'github.com',
     pathname: '/login',
     query: {
-      client_id: this.id,
-      return_to: '/login/oauth/authorize?client_id=' + this.id
+      client_id: ctx.id,
+      return_to: '/login/oauth/authorize?client_id=' + ctx.id
     }
   })
 
-  this.verifyOpts = {
+  ctx.verifyOpts = {
     uri: 'https://github.com/login/oauth/access_token',
     method: 'POST'
   }
 
-  this.userOpts = {
+  ctx.userOpts = {
     uri: 'https://api.github.com/user',
     method: 'GET',
     headers: {
-      'User-Agent': this.name
+      'User-Agent': ctx.name
     }
   }
-}
-
-Github.prototype.provider = function (auth, options) {
-  return {
-    key: 'github.username',
-    create: function () {
-      return this._create
-    },
-    verify: function () {
-      return this._verify
+  ctx.provider = function (auth, options) {
+    return {
+      key: 'github.username',
+      create: ctx._create,
+      verify: ctx._verify
     }
   }
-}
 
-Github.prototype.redirect = function (req, res) {
-  assert.equal(typeof req, 'object', 'township-github.redirect: req should be type Object')
-  assert.equal(typeof res, 'object', 'township-github.redirect: res should be type Object')
+  ctx.redirect = function (req, res) {
+    assert.equal(typeof req, 'object', 'township-github.redirect: req should be type Object')
+    assert.equal(typeof res, 'object', 'township-github.redirect: res should be type Object')
 
-  res.statusCode = 302
-  res.setHeader('x-github-oauth-redirect', this.redirectUrl)
-}
-
-Github.prototype._create = function (key, opts, cb) {
-  var code = opts.code
-  console.log('creating')
-  this._oauth(code, function (user) {
-    console.log(user)
-    return user
-  })
-}
-
-Github.prototype._verify = function (opts, cb) {
-  var code = opts.code
-  this._oauth(code, function (user) {
-    console.log(user)
-    return user
-  })
-}
-
-Github.prototype._oauth = function (code, cb) {
-  assert.equal(typeof code, 'string', 'township-github._oauth: code should be type String')
-  assert.equal(typeof cb, 'function', 'township-github._oauth: cb should be type Function')
-
-  var self = this
-
-  var opts = xtend(this.verifyOpts, {
-    qs: {
-      client_secret: this.secret,
-      client_id: this.id,
-      code: code
-    }
-  })
-
-  var req = request(opts)
-  _parseBody(req, function (err, obj) {
-    if (err) return cb(err)
-    if (!obj) return cb(new Error('township-github._oauth: no response body received from GitHub'))
-    if (!obj.access_token) return cb(new Error('township-github._oauth: no access_token in body received from GitHub'))
-
-    var token = obj.access_token
-
-    self._getUser(token, cb)
-  })
-}
-
-Github.prototype._getUser = function (token, cb) {
-  assert.equal(typeof token, 'string', 'township-github._getUser: token.access_token should be type String')
-  assert.equal(typeof cb, 'function', 'township-github._getUser: cb should be type Function')
-
-  var opts = xtend(this.userOpts, {
-    qs: { access_token: token }
-  })
-
-  var req = request(opts)
-  pump(req, concat({ encoding: 'string' }, handler), function (err) {
-    if (err) return cb(explain(err, 'township-github._getUser: pipe error'))
-  })
-
-  function handler (user) {
-    cb(null, user)
+    res.statusCode = 302
+    res.setHeader('x-github-oauth-redirect', ctx.redirectUrl)
   }
+
+  ctx._create = function (key, opts, cb) {
+    var code = opts.code
+    ctx._oauth(code, function (user) {
+      cb(user)
+    })
+  }
+
+  ctx._verify = function (opts, cb) {
+    var code = opts.code
+    ctx._oauth(code, function (user) {
+      cb(user)
+    })
+  }
+
+  ctx._oauth = function (code, cb) {
+    assert.equal(typeof code, 'string', 'township-github._oauth: code should be type String')
+    assert.equal(typeof cb, 'function', 'township-github._oauth: cb should be type Function')
+
+    var opts = xtend(ctx.verifyOpts, {
+      qs: {
+        client_secret: ctx.secret,
+        client_id: ctx.id,
+        code: code
+      }
+    })
+
+    var req = request(opts)
+    _parseBody(req, function (err, obj) {
+      if (err) return cb(err)
+      if (!obj) return cb(new Error('township-github._oauth: no response body received from GitHub'))
+      if (!obj.access_token) return cb(new Error('township-github._oauth: no access_token in body received from GitHub'))
+
+      var token = obj.access_token
+
+      ctx._getUser(token, cb)
+    })
+  }
+
+  ctx._getUser = function (token, cb) {
+    assert.equal(typeof token, 'string', 'township-github._getUser: token.access_token should be type String')
+    assert.equal(typeof cb, 'function', 'township-github._getUser: cb should be type Function')
+
+    var opts = xtend(ctx.userOpts, {
+      qs: { access_token: token }
+    })
+
+    var req = request(opts)
+    pump(req, concat({ encoding: 'string' }, handler), function (err) {
+      if (err) return cb(explain(err, 'township-github._getUser: pipe error'))
+    })
+
+    function handler (user) {
+      cb(user)
+    }
+  }
+
+  return ctx
 }
 
 function _parseBody (res, cb) {
