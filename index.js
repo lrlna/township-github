@@ -15,55 +15,55 @@ function Github (opts) {
 
   assert.equal(typeof opts, 'object', 'township-github: opts should be type Object')
 
-  ctx.secret = opts.GITHUB_SECRET || opts.secret
-  ctx.name = opts.GITHUB_NAME || opts.name
-  ctx.id = opts.GITHUB_ID || opts.id
+  var secret = opts.GITHUB_SECRET || opts.secret
+  var name = opts.GITHUB_NAME || opts.name
+  var id = opts.GITHUB_ID || opts.id
 
-  assert.equal(typeof ctx.secret, 'string', 'township-github: secret should be type String')
-  assert.equal(typeof ctx.name, 'string', 'township-github: name should be type String')
-  assert.equal(typeof ctx.id, 'string', 'township-github: id should be type String')
+  assert.equal(typeof secret, 'string', 'township-github: secret should be type String')
+  assert.equal(typeof name, 'string', 'township-github: name should be type String')
+  assert.equal(typeof id, 'string', 'township-github: id should be type String')
 
-  ctx.redirectUrl = url.format({
-    protocol: 'https:',
-    host: 'github.com',
-    pathname: '/login',
-    query: {
-      client_id: ctx.id,
-      return_to: '/login/oauth/authorize?client_id=' + ctx.id
-    }
-  })
+  ctx.create = create
+  ctx.verify = verify
+  ctx.oauth = oauth
+  ctx.getUser = getUser
+  ctx.provider = provider
+  ctx.create = create
+  ctx.verify = verify
+  ctx.oauth = oauth
+  ctx.getUser = getUser
+  ctx.redirect = redirect
 
-  ctx.verifyOpts = {
-    uri: 'https://github.com/login/oauth/access_token',
-    method: 'POST'
-  }
+  return ctx
 
-  ctx.userOpts = {
-    uri: 'https://api.github.com/user',
-    method: 'GET',
-    headers: {
-      'User-Agent': ctx.name
-    }
-  }
-  ctx.provider = function (auth, options) {
+  function provider (auth, options) {
     return {
       key: 'github.username',
-      create: ctx._create,
-      verify: ctx._verify
+      create: ctx.create,
+      verify: ctx.verify
     }
   }
 
-  ctx.redirect = function (req, res) {
+  function redirect (req, res) {
+    var redirectUrl = url.format({
+      protocol: 'https:',
+      host: 'github.com',
+      pathname: '/login',
+      query: {
+        client_id: id,
+        return_to: '/login/oauth/authorize?client_id=' + id
+      }
+    })
     assert.equal(typeof req, 'object', 'township-github.redirect: req should be type Object')
     assert.equal(typeof res, 'object', 'township-github.redirect: res should be type Object')
 
     res.statusCode = 302
-    res.setHeader('x-github-oauth-redirect', ctx.redirectUrl)
+    res.setHeader('x-github-oauth-redirect', redirectUrl)
   }
 
-  ctx._create = function (key, opts, cb) {
+  function create (key, opts, cb) {
     var code = opts.code
-    ctx._oauth(code, function (user) {
+    ctx.oauth(code, function (user) {
       var res = {
         username: user.login
       }
@@ -72,9 +72,9 @@ function Github (opts) {
     })
   }
 
-  ctx._verify = function (opts, cb) {
+  function verify (opts, cb) {
     var code = opts.code
-    ctx._oauth(code, function (user) {
+    ctx.oauth(code, function (user) {
       auth.db.get(opts.key, function (err, account) {
         if (err) return cb(err)
         cb(null, { key: account.key, github: { username: account.github.username } })
@@ -82,14 +82,19 @@ function Github (opts) {
     })
   }
 
-  ctx._oauth = function (code, cb) {
+  function oauth (code, cb) {
+    var verifyOpts = {
+      uri: 'https://github.com/login/oauth/access_token',
+      method: 'POST'
+    }
+
     assert.equal(typeof code, 'string', 'township-github._oauth: code should be type String')
     assert.equal(typeof cb, 'function', 'township-github._oauth: cb should be type Function')
 
-    var opts = xtend(ctx.verifyOpts, {
+    var opts = xtend(verifyOpts, {
       qs: {
-        client_secret: ctx.secret,
-        client_id: ctx.id,
+        client_secret: secret,
+        client_id: id,
         code: code
       }
     })
@@ -102,15 +107,23 @@ function Github (opts) {
 
       var token = obj.access_token
 
-      ctx._getUser(token, cb)
+      ctx.getUser(token, cb)
     })
   }
 
-  ctx._getUser = function (token, cb) {
+  function getUser (token, cb) {
+    var userOpts = {
+      uri: 'https://api.github.com/user',
+      method: 'GET',
+      headers: {
+        'User-Agent': name
+      }
+    }
+
     assert.equal(typeof token, 'string', 'township-github._getUser: token.access_token should be type String')
     assert.equal(typeof cb, 'function', 'township-github._getUser: cb should be type Function')
 
-    var opts = xtend(ctx.userOpts, {
+    var opts = xtend(userOpts, {
       qs: { access_token: token }
     })
 
@@ -124,8 +137,6 @@ function Github (opts) {
       cb(user)
     }
   }
-
-  return ctx
 }
 
 function _parseBody (res, cb) {

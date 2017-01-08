@@ -25,7 +25,7 @@ function mainView () {
 
 function doneView () {
   var code = window.location.href.match(/\?code=(.*)/)[1]
-  var body = {
+  var json = {
     code: code
   }
   var opts = {
