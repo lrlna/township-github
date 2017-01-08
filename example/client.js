@@ -30,12 +30,8 @@ function doneView () {
   }
   var opts = {
     uri: '/login',
-    body: body,
-    json: true,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    json: json,
+    method: 'POST'
   }
 
   xhr(opts, function (err, res, body) {

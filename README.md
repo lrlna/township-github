@@ -94,18 +94,14 @@ function redirect () {
 function register() {
   // need to grab the code provided by GitHub
   var code = window.location.href.match(/\?code=(.*)/)[1]
-  var body = {
+  var json = {
     code: code
   }
   var opts = {
     // or /login to verify user info
     uri: '/register',
-    body: body,
-    json: true,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    json: json,
+    method: 'POST'
   }
 
   xhr(opts, function (err, res, body) {
