@@ -10,7 +10,6 @@ var url = require('url')
 module.exports = Github
 
 function Github (opts) {
-  var ctx = {}
   opts = opts || {}
 
   assert.equal(typeof opts, 'object', 'township-github: opts should be type Object')
@@ -23,24 +22,16 @@ function Github (opts) {
   assert.equal(typeof name, 'string', 'township-github: name should be type String')
   assert.equal(typeof id, 'string', 'township-github: id should be type String')
 
-  ctx.create = create
-  ctx.verify = verify
-  ctx.oauth = oauth
-  ctx.getUser = getUser
-  ctx.provider = provider
-  ctx.create = create
-  ctx.verify = verify
-  ctx.oauth = oauth
-  ctx.getUser = getUser
-  ctx.redirect = redirect
-
-  return ctx
+  return {
+    provider: provider,
+    redirect: redirect
+  }
 
   function provider (auth, options) {
     return {
       key: 'github.username',
-      create: ctx.create,
-      verify: ctx.verify
+      create: _create,
+      verify: _verify
     }
   }
 
@@ -61,9 +52,9 @@ function Github (opts) {
     res.setHeader('x-github-oauth-redirect', redirectUrl)
   }
 
-  function create (key, opts, cb) {
+  function _create (key, opts, cb) {
     var code = opts.code
-    ctx.oauth(code, function (user) {
+    _oauth(code, function (user) {
       var res = {
         username: user.login
       }
@@ -72,9 +63,9 @@ function Github (opts) {
     })
   }
 
-  function verify (opts, cb) {
+  function _verify (opts, cb) {
     var code = opts.code
-    ctx.oauth(code, function (user) {
+    _oauth(code, function (user) {
       auth.db.get(opts.key, function (err, account) {
         if (err) return cb(err)
         cb(null, { key: account.key, github: { username: account.github.username } })
@@ -82,7 +73,7 @@ function Github (opts) {
     })
   }
 
-  function oauth (code, cb) {
+  function _oauth (code, cb) {
     var verifyOpts = {
       uri: 'https://github.com/login/oauth/access_token',
       method: 'POST'
@@ -107,11 +98,11 @@ function Github (opts) {
 
       var token = obj.access_token
 
-      ctx.getUser(token, cb)
+      _getUser(token, cb)
     })
   }
 
-  function getUser (token, cb) {
+  function _getUser (token, cb) {
     var userOpts = {
       uri: 'https://api.github.com/user',
       method: 'GET',
