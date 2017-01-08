@@ -1,6 +1,5 @@
 var explain = require('explain-error')
 var concat = require('concat-stream')
-var Auth = require('township-auth')
 var bankai = require('bankai')
 var merry = require('merry')
 var level = require('level')
@@ -18,12 +17,9 @@ var env = merry.env({
 
 var assets = bankai(path.join(__dirname, 'client.js'), { css: false })
 var db = level(env.DATABASE_PATH)
+env.DB = db
 var github = Github(env)
 var app = merry()
-
-var auth = Auth(db, {
-  providers: { github: github.provider }
-})
 
 app.router([
   [ '/', _merryAssets(assets.html.bind(assets)) ],
@@ -49,9 +45,9 @@ function register (req, res, ctx, done) {
   _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
-      github: { code: json.code }
+      code: json.code
     }
-    auth.create(opts, done)
+    github.create(opts, done)
   })
 }
 
@@ -59,9 +55,9 @@ function login (req, res, ctx, done) {
   _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
-      github: { code: json.code }
+      code: json.code
     }
-    auth.verify('github', opts, done)
+    github.verify(opts, done)
   })
 }
 

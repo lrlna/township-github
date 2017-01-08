@@ -1,5 +1,6 @@
 var explain = require('explain-error')
 var concat = require('concat-stream')
+var Auth = require('township-auth')
 var request = require('request')
 var qs = require('querystring')
 var assert = require('assert')
@@ -17,14 +18,22 @@ function Github (opts) {
   var secret = opts.GITHUB_SECRET || opts.secret
   var name = opts.GITHUB_NAME || opts.name
   var id = opts.GITHUB_ID || opts.id
+  var db = opts.DB || opts.db
 
   assert.equal(typeof secret, 'string', 'township-github: secret should be type String')
   assert.equal(typeof name, 'string', 'township-github: name should be type String')
   assert.equal(typeof id, 'string', 'township-github: id should be type String')
+  assert.equal(typeof db, 'object', 'township-github: db should be type Object')
+
+  var auth = Auth(db, {
+    providers: { github: provider }
+  })
 
   return {
     provider: provider,
-    redirect: redirect
+    redirect: redirect,
+    create: create,
+    verify: verify
   }
 
   function provider (auth, options) {
@@ -52,24 +61,45 @@ function Github (opts) {
     res.setHeader('x-github-oauth-redirect', redirectUrl)
   }
 
-  function _create (key, opts, cb) {
+  function create (opts, cb) {
     var code = opts.code
     _oauth(code, function (user) {
-      var res = {
-        username: user.login
+      var params = {
+        github: {
+          username: user.login,
+          code: opts.code
+        }
       }
-
-      cb(null, res)
+      auth.create(params, cb)
     })
   }
 
-  function _verify (opts, cb) {
+  function verify (opts, cb) {
     var code = opts.code
     _oauth(code, function (user) {
-      auth.db.get(opts.key, function (err, account) {
-        if (err) return cb(err)
-        cb(null, { key: account.key, github: { username: account.github.username } })
-      })
+      var params = {
+        username: user.login,
+        code: opts.code
+      }
+      auth.verify('github', params, cb)
+    })
+  }
+
+  function _create (key, opts, cb) {
+    assert.equal(typeof opts, 'object', 'township-github._verify: opts should be type Object')
+
+    var res = {
+      username: opts.username
+    }
+    cb(null, res)
+  }
+
+  function _verify (opts, cb) {
+    assert.equal(typeof opts, 'object', 'township-github._verify: opts should be type Object')
+
+    auth.db.get(opts.key, function (err, account) {
+      if (err) return cb(err)
+      cb(null, { key: account.key, github: { username: account.github.username } })
     })
   }
 

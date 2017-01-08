@@ -18,14 +18,10 @@ var db = level('users')
 var app = merry()
 
 var github = Github({
-  returnUrl: '<some-browser-url-we-control>',
   secret: '<our-secret>',
   name: 'our-app',
-  id: '<our-id>'
-})
-
-var auth = Auth(db, {
-  providers: { github: github.provider() }
+  id: '<our-id>',
+  db: db
 })
 
 app.router([
@@ -40,17 +36,17 @@ app.router([
 ])
 
 function redirect (req, res, ctx, next) {
-  var html = github.redirect(req, res)
-  next(null, html)
+  github.redirect(req, res)
+  next(null, '')
 }
 
 function register (req, res, ctx, done) {
   _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
-      github: { code: json.code }
+      code: json.code
     }
-    auth.create(opts, done)
+    github.create(opts, done)
   })
 }
 
@@ -58,9 +54,9 @@ function login (req, res, ctx, done) {
   _parseJson(req, function (err, json) {
     if (err) return done(err)
     var opts = {
-      github: { code: json.code }
+      code: json.code
     }
-    auth.verify('github', opts, done)
+    github.verify(opts, done)
   })
 }
 
