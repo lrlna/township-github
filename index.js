@@ -23,6 +23,7 @@ function Github (opts) {
   assert.equal(typeof id, 'string', 'township-github: id should be type String')
 
   return {
+    oauth: oauth,
     provider: provider,
     redirect: redirect
   }
@@ -53,27 +54,25 @@ function Github (opts) {
   }
 
   function _create (key, opts, cb) {
-    var code = opts.code
-    _oauth(code, function (user) {
-      var res = {
-        username: user.login
-      }
+    assert.equal(typeof opts, 'object', 'township-github._create: opts should be type Object')
 
-      cb(null, res)
-    })
+    var res = {
+      username: opts.login
+    }
+
+    cb(null, res)
   }
 
   function _verify (opts, cb) {
-    var code = opts.code
-    _oauth(code, function (user) {
-      auth.db.get(opts.key, function (err, account) {
-        if (err) return cb(err)
-        cb(null, { key: account.key, github: { username: account.github.username } })
-      })
+    assert.equal(typeof opts, 'object', 'township-github._verify: opts should be type Object')
+
+    auth.db.get(opts.key, function (err, account) {
+      if (err) return cb(err)
+      cb(null, { key: account.key, github: { username: account.github.username } })
     })
   }
 
-  function _oauth (code, cb) {
+  function oauth (code, cb) {
     var verifyOpts = {
       uri: 'https://github.com/login/oauth/access_token',
       method: 'POST'

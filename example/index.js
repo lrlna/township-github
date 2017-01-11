@@ -48,21 +48,31 @@ function redirect (req, res, ctx, next) {
 function register (req, res, ctx, done) {
   _parseJson(req, function (err, json) {
     if (err) return done(err)
+    github.oauth(json.code, handler)
+  })
+
+  function handler (err, user) {
+    if (err) return done(err)
     var opts = {
-      github: { code: json.code }
+      github: { username: user.login }
     }
     auth.create(opts, done)
-  })
+  }
 }
 
 function login (req, res, ctx, done) {
   _parseJson(req, function (err, json) {
     if (err) return done(err)
+    github.oauth(json.code, handler)
+  })
+
+  function handler (err, user) {
+    if (err) return done(err)
     var opts = {
-      github: { code: json.code }
+      github: { username: user.code }
     }
     auth.verify('github', opts, done)
-  })
+  }
 }
 
 function _merryAssets (asset) {
