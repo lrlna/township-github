@@ -29,13 +29,14 @@ function doneView () {
     code: code
   }
   var opts = {
-    uri: '/login',
+    uri: '/register',
     json: json,
     method: 'POST'
   }
 
   xhr(opts, function (err, res, body) {
     if (err) return console.log(err)
+    console.log(body)
   })
 
   return html`

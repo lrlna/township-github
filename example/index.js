@@ -16,6 +16,8 @@ var env = merry.env({
   'PORT': 8080
 })
 
+var mw = merry.middleware
+
 var assets = bankai(path.join(__dirname, 'client.js'), { css: false })
 var db = level(env.DATABASE_PATH)
 var github = Github(env)
@@ -32,10 +34,10 @@ app.router([
   [ '/404', merry.notFound() ],
   [ '/redirect', redirect ],
   [ '/register', {
-    'post': register
+    'post': mw([parseJson, register])
   } ],
   [ '/login', {
-    'post': login
+    'post': mw([parseJson, login])
   } ]
 ])
 app.listen(env.PORT)
@@ -45,21 +47,31 @@ function redirect (req, res, ctx, next) {
   next(null, '')
 }
 
-function register (req, res, ctx, done) {
+function parseJson (req, res, ctx, done) {
   _parseJson(req, function (err, json) {
     if (err) return done(err)
-    var opts = {
-      github: { code: json.code }
-    }
-    auth.create(opts, done)
+    ctx.code = json.code
+    done()
   })
 }
 
-function login (req, res, ctx, done) {
-  _parseJson(req, function (err, json) {
+function register (req, res, ctx, done) {
+  github.oauth(ctx.code, handler)
+
+  function handler (err, user) {
     if (err) return done(err)
     var opts = {
-      github: { code: json.code }
+      github: { username: user.login }
+    }
+    auth.create(opts, done)
+  }
+}
+
+function login (req, res, ctx, done) {
+  github.oauth(ctx.code, function (err, user) {
+    if (err) return done(err)
+    var opts = {
+      github: { username: user.login }
     }
     auth.verify('github', opts, done)
   })

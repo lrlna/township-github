@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "github provider for township",
   "license": "MIT",
-  "author": "Irina Shestak",
+  "contributors": [
+    "Irina Shestak <shestak.irina@gmail.com",
+    "Yoshua Wuyts <yoshuawuyts@gmail.com"
+  ],
   "repository": "lrlna/township-github",
   "main": "index.js",
   "scripts": {
@@ -19,7 +22,7 @@
     "bankai": "^5.2.0",
     "choo": "^4.0.3",
     "level": "^1.5.0",
-    "merry": "^3.0.2",
+    "merry": "^4.1.0",
     "nodemon": "^1.11.0",
     "township-auth": "^3.0.0",
     "xhr": "^2.3.2"
@@ -27,6 +30,7 @@
   "dependencies": {
     "concat-stream": "^1.6.0",
     "explain-error": "^1.0.3",
+    "merry": "^3.4.0",
     "pump": "^1.0.2",
     "request": "^2.79.0",
     "xtend": "^4.0.1"
