@@ -31,8 +31,8 @@ function Github (opts) {
   function provider (auth, options) {
     return {
       key: 'github.username',
-      create: _create,
-      verify: _verify
+      verify: _verify,
+      create: _create
     }
   }
 
@@ -57,9 +57,8 @@ function Github (opts) {
     assert.equal(typeof opts, 'object', 'township-github._create: opts should be type Object')
 
     var res = {
-      username: opts.login
+      username: opts.username
     }
-
     cb(null, res)
   }
 
@@ -78,8 +77,8 @@ function Github (opts) {
       method: 'POST'
     }
 
-    assert.equal(typeof code, 'string', 'township-github._oauth: code should be type String')
-    assert.equal(typeof cb, 'function', 'township-github._oauth: cb should be type Function')
+    assert.equal(typeof code, 'string', 'township-github.oauth: code should be type String')
+    assert.equal(typeof cb, 'function', 'township-github.oauth: cb should be type Function')
 
     var opts = xtend(verifyOpts, {
       qs: {
@@ -92,8 +91,9 @@ function Github (opts) {
     var req = request(opts)
     _parseBody(req, function (err, obj) {
       if (err) return cb(err)
-      if (!obj) return cb(new Error('township-github._oauth: no response body received from GitHub'))
-      if (!obj.access_token) return cb(new Error('township-github._oauth: no access_token in body received from GitHub'))
+      if (obj.error) return cb(new Error('township-github.oauth: GitHub responded with, ' + obj.error_description))
+      if (!obj) return cb(new Error('township-github.oauth: no response body received from GitHub'))
+      if (!obj.access_token) return cb(new Error('township-github.oauth: no access_token in body received from GitHub'))
 
       var token = obj.access_token
 
@@ -124,7 +124,7 @@ function Github (opts) {
 
     function handler (obj) {
       var user = JSON.parse(obj)
-      cb(user)
+      cb(null, user)
     }
   }
 }
